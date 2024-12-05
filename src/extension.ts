@@ -1,12 +1,13 @@
+// src/extension.ts
+
 import * as vscode from 'vscode';
 import { SidebarProvider } from './sidebarProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-    // Register the WebviewView
+    const sidebarProvider = new SidebarProvider(context);
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            'submittyWebview',
-            new SidebarProvider(context)
-        )
+        vscode.window.registerWebviewViewProvider('submittyWebview', sidebarProvider)
     );
 }
+
+export function deactivate() {}

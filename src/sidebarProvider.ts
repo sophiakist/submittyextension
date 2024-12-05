@@ -1,11 +1,17 @@
+// src/sidebarProvider.ts
+
 import * as vscode from 'vscode';
-import axios from 'axios';
 import { getHtmlContent } from './sidebarContent';
+import { ApiService } from './services/apiService';
+import { CourseDisplay } from './display/courseDisplay';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
+    private apiService: ApiService;
 
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    constructor(private readonly context: vscode.ExtensionContext) {
+        this.apiService = new ApiService(this.context);
+    }
 
     resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -16,98 +22,75 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.options = {
             enableScripts: true,
+            localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'src', 'webview')],
         };
 
-        webviewView.webview.html = getHtmlContent();
+        webviewView.webview.html = getHtmlContent(this.context);
 
         // Handle messages from the webview
-        webviewView.webview.onDidReceiveMessage(async (message) => {
-            if (message.command === 'login') {
-                const { userId, password } = message.data;
-
-                if (!userId || !password) {
-                    this._view?.webview.postMessage({ command: 'error', message: 'User ID and Password are required!' });
-                    return;
-                }
-
-                try {
-                    const response = await axios.post('https://kistso.cs.wallawalla.edu/api/token', {
-                        user_id: userId,
-                        password: password,
-                    }, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                    });
-
-                    const token = response.data.token;
-                    this.context.globalState.update('submittyToken', token);
-
-                    vscode.window.showInformationMessage('Login Successful! Fetching courses...');
-                    const courses = await this.fetchCourses(token);
-                    this.displayCourses(courses);
-
-                    this._view?.webview.postMessage({ command: 'success', message: 'Login Successful!' });
-                } catch (error: any) {
-                    this._view?.webview.postMessage({ command: 'error', message: `Login Failed: ${error.message}` });
-                }
-            }
-        });
+        webviewView.webview.onDidReceiveMessage(
+            async (message) => {
+                await this.handleMessage(message, webviewView);
+            },
+            undefined,
+            this.context.subscriptions
+        );
     }
 
-    private async fetchCourses(token: string): Promise<string[]> {
-        try {
-            const response = await axios.get('https://kistso.cs.wallawalla.edu/api/courses', {
-                headers: {
-                    Authorization: token,
-                },
-            });
-            return response.data.courses.map((course: any) => course.course_name);
-        } catch (error: any) {
-            vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
-            return [];
+    /**
+     * Handles incoming messages from the webview.
+     * Delegates tasks based on the message command.
+     * @param message The message received from the webview.
+     * @param view The WebviewView instance.
+     */
+    private async handleMessage(message: any, view: vscode.WebviewView) {
+        switch (message.command) {
+            case 'login':
+                await this.handleLogin(message.data, view);
+                break;
+            // Future commands can be handled here
+            default:
+                vscode.window.showWarningMessage(`Unknown command: ${message.command}`);
+                break;
         }
     }
 
-    private displayCourses(courses: string[]) {
-        const panel = vscode.window.createWebviewPanel(
-            'submittyCourses',
-            'Submitty Courses',
-            vscode.ViewColumn.One,
-            { enableScripts: true }
-        );
+    /**
+     * Handles the login operation.
+     * @param data The data containing userId and password.
+     * @param view The WebviewView instance.
+     */
+    private async handleLogin(data: any, view: vscode.WebviewView) {
+        const { userId, password } = data;
 
-        const coursesHtml = courses.length
-            ? courses.map((course) => `<li>${course}</li>`).join('')
-            : '<p>No courses found.</p>';
+        if (!userId || !password) {
+            view.webview.postMessage({ command: 'error', message: 'User ID and Password are required!' });
+            return;
+        }
 
-        panel.webview.html = `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Submitty Courses</title>
-                <style>
-                    body {
-                        font-family: sans-serif;
-                        padding: 10px;
-                    }
-                    ul {
-                        list-style-type: none;
-                        padding: 0;
-                    }
-                    li {
-                        padding: 5px;
-                        background: #f0f0f0;
-                        margin-bottom: 5px;
-                        border-radius: 5px;
-                    }
-                </style>
-            </head>
-            <body>
-                <h3>Your Courses</h3>
-                <ul>${coursesHtml}</ul>
-            </body>
-            </html>
-        `;
+        try {
+            const token = await this.apiService.login(userId, password);
+            view.webview.postMessage({ command: 'success', message: 'Login Successful!' });
+            // await this.fetchAndDisplayCourses(token, view);
+        } catch (error: any) {
+            view.webview.postMessage({ command: 'error', message: `Login Failed: ${error.message}` });
+        }
     }
+
+    /**
+     * Fetches courses using the provided token and displays them.
+     * @param token The authentication token received after login.
+     * @param view The WebviewView instance.
+     */
+//     private async fetchAndDisplayCourses(token: string, view: vscode.WebviewView) {
+//         vscode.window.showInformationMessage('Login Successful! Fetching courses...');
+
+//         try {
+//             const courses = await this.apiService.fetchCourses(token);
+//             CourseDisplay.displayCourses(courses);
+//         } catch (error: any) {
+//             vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
+//             view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
+//         }
+//     }
 }
