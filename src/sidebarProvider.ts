@@ -64,14 +64,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         const { userId, password } = data;
 
         if (!userId || !password) {
-            view.webview.postMessage({ command: 'error', message: 'User ID and Password are required!' });
+            view.webview.postMessage({ command: 'error', message: 'Username and Password are required!' });
             return;
         }
 
         try {
             const token = await this.apiService.login(userId, password);
             view.webview.postMessage({ command: 'success', message: 'Login Successful!' });
-            // await this.fetchAndDisplayCourses(token, view);
+            await this.fetchAndDisplayCourses(token, view);
         } catch (error: any) {
             view.webview.postMessage({ command: 'error', message: `Login Failed: ${error.message}` });
         }
@@ -82,15 +82,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @param token The authentication token received after login.
      * @param view The WebviewView instance.
      */
-//     private async fetchAndDisplayCourses(token: string, view: vscode.WebviewView) {
-//         vscode.window.showInformationMessage('Login Successful! Fetching courses...');
+    private async fetchAndDisplayCourses(token: string, view: vscode.WebviewView) {
+        console.log('Fetching courses with token:', token);
 
-//         try {
-//             const courses = await this.apiService.fetchCourses(token);
-//             CourseDisplay.displayCourses(courses);
-//         } catch (error: any) {
-//             vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
-//             view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
-//         }
-//     }
+        // vscode.window.showInformationMessage('Login Successful! Fetching courses...');
+        // try {
+        //     const courses = await this.apiService.fetchCourses(token);
+        //     CourseDisplay.displayCourses(courses);
+        // } catch (error: any) {
+        //     vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
+        //     view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
+        // }
+    }
 }

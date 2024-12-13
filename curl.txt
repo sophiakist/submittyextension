@@ -6,4 +6,4 @@ curl -X POST \
 
 curl --request GET \
   --url  https://kistso.cs.wallawalla.edu/api/courses \
-  --header 'Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MzAzMjI5ODkuOTkyNDIxLCJpc3MiOiJodHRwczovL2tpc3Rzby5jcy53YWxsYXdhbGxhLmVkdS8iLCJhcGlfa2V5IjoiOTM5YzE0NDI4NmRjZjkwMTNkYWM4NjNkM2Y5ZGUxMGUifQ.WCBpBmbPOk6DOGtboXdtIghP1wtOGGyFZBWeDy6lH2M'
+  --header 'Authorization: token'

@@ -1,30 +1,52 @@
-
 // src/display/courseDisplay.ts
 
 import * as vscode from 'vscode';
 
+interface Course {
+    semester: string;
+    title: string;
+    display_name: string;
+    display_semester: string;
+    user_group: number;
+    registration_section: string;
+}
+
+interface ApiResponse {
+    status: string;
+    data: {
+        unarchived_courses: Course[];
+        archived_courses: Course[];
+        dropped_courses: Course[];
+    };
+    message?: string;
+}
+
 export class CourseDisplay {
-    static displayCourses(apiResponse: string) {
-        // Parse the JSON response
+    static displayCourses(apiResponse: ApiResponse) {
+        console.log('displayCourses method called');
+
+        // Initialize course arrays
         let unarchivedCourses: string[] = [];
         let archivedCourses: string[] = [];
-        
+
         try {
-            const data = JSON.parse(apiResponse);
-            unarchivedCourses = data.data.unarchived_courses.map(
-                (course: {
-                    title: string; display_name: string; display_semester: string 
-}) =>
+            console.log('Processing unarchived_courses');
+            unarchivedCourses = apiResponse.data.unarchived_courses.map(
+                (course) =>
                     course.display_name || course.title || 'Untitled Course'
             );
-            archivedCourses = data.data.archived_courses.map(
-                (course: {
-                    title: string; display_name: string; display_semester: string 
-}) =>
+            console.log('Mapped Unarchived Courses:', unarchivedCourses);
+
+            console.log('Processing archived_courses');
+            archivedCourses = apiResponse.data.archived_courses.map(
+                (course) =>
                     course.display_name || course.title || 'Untitled Course'
             );
+            console.log('Mapped Archived Courses:', archivedCourses);
         } catch (error) {
-            vscode.window.showErrorMessage('Failed to parse courses data.');
+            console.error('Error in displayCourses:', error);
+            vscode.window.showErrorMessage('Failed to process courses data.');
+            return;
         }
 
         // Create the webview panel
@@ -35,13 +57,14 @@ export class CourseDisplay {
             { enableScripts: true }
         );
 
-        // Generate HTML for courses
+        // Generate HTML for unarchived courses
         const unarchivedHtml = unarchivedCourses.length
-            ? unarchivedCourses.map((course) => `<li>${course}</li>`).join('')
+            ? `<ul>${unarchivedCourses.map((course) => `<li>${sanitize(course)}</li>`).join('')}</ul>`
             : '<p>No unarchived courses found.</p>';
 
+        // Generate HTML for archived courses
         const archivedHtml = archivedCourses.length
-            ? archivedCourses.map((course) => `<li>${course}</li>`).join('')
+            ? `<ul>${archivedCourses.map((course) => `<li>${sanitize(course)}</li>`).join('')}</ul>`
             : '<p>No archived courses found.</p>';
 
         // Set the panel's webview HTML content
@@ -75,14 +98,19 @@ export class CourseDisplay {
             <body>
                 <section>
                     <h3>Unarchived Courses</h3>
-                    <ul>${unarchivedHtml}</ul>
+                    ${unarchivedHtml}
                 </section>
                 <section>
                     <h3>Archived Courses</h3>
-                    <ul>${archivedHtml}</ul>
+                    ${archivedHtml}
                 </section>
             </body>
             </html>
         `;
     }
+}
+
+// Utility function to sanitize HTML content
+function sanitize(str: string): string {
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

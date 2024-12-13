@@ -12,6 +12,18 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": [
+      {
+        "title": "Submitty Grader",
+        "properties": {
+          "submitty.grade": {
+            "title": "Grade",
+            "type": "string",
+            "description": "The grade to assign to the student's submission."
+          }
+        }
+        }
+      ],
     "commands": [
       {
         "command": "submitty.setUserId",
@@ -24,6 +36,11 @@
       {
         "command": "submitty.login",
         "title": "Log in to Submitty"
+      },
+      {
+        "command": "submitty.grade",
+        "title": "Grade",
+        "icon": "$(check)"
       }
     ],
     "viewsContainers": {
@@ -32,6 +49,13 @@
           "id": "submittySidebar",
           "title": "Submitty",
           "icon": "media/duck.png"
+        }
+      ],
+      "panel": [
+        {
+          "id": "submitty-panel-view",
+          "title": "Submitty",
+          "icon": "$(file-code)"
         }
       ]
     },
@@ -42,8 +66,24 @@
         "id": "submittyWebview",
         "name": "Submitty Login"
       }
+    ],
+    "submitty-panel-view": [
+      {
+        "type": "webview",
+        "id": "submitty-panel",
+        "name": "Submitty",
+        "contextualTitle": "Submitty"
+      }
     ]
-  }
+  },
+  "menus": {
+    "editor/title": [
+      {
+        "command": "submitty.grade",
+        "when": "editorTextFocus",
+        "group": "navigation"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -66,5 +106,6 @@
   },
   "dependencies": {
     "axios": "^1.7.8"
+  }
   }
 }
