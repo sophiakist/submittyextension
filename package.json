@@ -22,8 +22,8 @@
             "description": "The grade to assign to the student's submission."
           }
         }
-        }
-      ],
+      }
+    ],
     "commands": [
       {
         "command": "submitty.setUserId",
@@ -60,32 +60,34 @@
       ]
     },
     "views": {
-    "submittySidebar": [
-      {
-        "type": "webview",
-        "id": "submittyWebview",
-        "name": "Submitty Login"
-      }
-    ],
-    "submitty-panel-view": [
-      {
-        "type": "webview",
-        "id": "submitty-panel",
-        "name": "Submitty",
-        "contextualTitle": "Submitty"
-      }
-    ]
-  },
-  "menus": {
-    "editor/title": [
-      {
-        "command": "submitty.grade",
-        "when": "editorTextFocus",
-        "group": "navigation"
-      }
-    ]
+      "submittySidebar": [
+        {
+          "type": "webview",
+          "id": "submittyWebview",
+          "name": "Submitty Login"
+        }
+      ],
+      "submitty-panel-view": [
+        {
+          "type": "webview",
+          "id": "submitty-panel",
+          "name": "Submitty",
+          "contextualTitle": "Submitty"
+        }
+      ]
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "submitty.grade",
+          "when": "editorTextFocus",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
+    "clean": "rimraf out",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
@@ -102,10 +104,10 @@
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.4.0",
     "eslint": "^8.57.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "rimraf": "^3.0.2"
   },
   "dependencies": {
     "axios": "^1.7.8"
-  }
   }
 }

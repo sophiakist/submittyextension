@@ -39,7 +39,7 @@ export class ApiService {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 }
             );
-            const token: string = response.data.token;
+            const token: string = response.data.data.token;
             this.context.globalState.update('submittyToken', token);
             return token;
         } catch (error: any) {

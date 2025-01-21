@@ -83,15 +83,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @param view The WebviewView instance.
      */
     private async fetchAndDisplayCourses(token: string, view: vscode.WebviewView) {
-        console.log('Fetching courses with token:', token);
 
-        // vscode.window.showInformationMessage('Login Successful! Fetching courses...');
-        // try {
-        //     const courses = await this.apiService.fetchCourses(token);
-        //     CourseDisplay.displayCourses(courses);
-        // } catch (error: any) {
-        //     vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
-        //     view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
-        // }
+        vscode.window.showInformationMessage('Login Successful! Fetching courses...');
+        try {
+            const courses = await this.apiService.fetchCourses(token);
+            CourseDisplay.displayCourses(courses);
+        } catch (error: any) {
+            vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
+            view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
+        }
     }
 }
