@@ -23,14 +23,14 @@ interface ApiResponse {
 }
 
 export class ApiService {
-    private apiBaseUrl: string = 'https://kistso.cs.wallawalla.edu/api';
-
+    apiBaseUrl: string = '';
     constructor(private context: vscode.ExtensionContext) {}
 
-    async login(userId: string, password: string): Promise<string> {
+    async login(url: string, userId: string, password: string): Promise<string> {
+        this.apiBaseUrl = url;
         try {
             const response = await axios.post(
-                `${this.apiBaseUrl}/token`,
+                `${this.apiBaseUrl}/api/token`,
                 {
                     user_id: userId,
                     password: password,
@@ -49,7 +49,7 @@ export class ApiService {
 
     async fetchCourses(token: string): Promise<ApiResponse> {
         try {
-            const response = await axios.get(`${this.apiBaseUrl}/courses`, {
+            const response = await axios.get(`${this.apiBaseUrl}/api/courses`, {
                 headers: {
                     Authorization: token,
                 },

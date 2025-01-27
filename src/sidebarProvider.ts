@@ -61,7 +61,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @param view The WebviewView instance.
      */
     private async handleLogin(data: any, view: vscode.WebviewView) {
-        const { userId, password } = data;
+        const { url, userId, password } = data;
 
         if (!userId || !password) {
             view.webview.postMessage({ command: 'error', message: 'Username and Password are required!' });
@@ -69,7 +69,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-            const token = await this.apiService.login(userId, password);
+            const token = await this.apiService.login(url, userId, password);
             view.webview.postMessage({ command: 'success', message: 'Login Successful!' });
             await this.fetchAndDisplayCourses(token, view);
         } catch (error: any) {
