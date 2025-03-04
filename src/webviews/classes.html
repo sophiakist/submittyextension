@@ -10,13 +10,35 @@
             color: var(--vscode-editor-foreground);
             background-color: var(--vscode-editor-background);
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
+        .accordion {
+            color: var(--vscode-editor-foreground);
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            transition: 0.4s;
+            background-color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        li {
-            padding: 5px;
-            margin-bottom: 5px;
+        .accordion::after {
+            content: '\2304';
+            font-size: 12px;
+            color: var(--vscode-editor-foreground);
+            transition: transform 0.4s;
+        }
+        .active::after {
+            transform: rotate(180deg);
+        }
+        .panel {
+            padding: 0 18px;
+            display: none;
+            background-color: transparent;
+            overflow: hidden;
         }
         section {
             margin-bottom: 20px;
@@ -25,12 +47,8 @@
 </head>
 <body>
     <section>
-        <h3>Unarchived Courses</h3>
+        <h3>Courses</h3>
         <div id="unarchivedCourses"></div>
-    </section>
-    <section>
-        <h3>Archived Courses</h3>
-        <div id="archivedCourses"></div>
     </section>
 
     <script>
@@ -40,9 +58,24 @@
             const { command, data } = event.data;
             if (command === 'displayCourses') {
                 document.getElementById('unarchivedCourses').innerHTML = data.unarchivedHtml;
-                document.getElementById('archivedCourses').innerHTML = data.archivedHtml;
+                initializeAccordion();
             }
         });
+
+        function initializeAccordion() {
+            const accordions = document.getElementsByClassName('accordion');
+            for (let i = 0; i < accordions.length; i++) {
+                accordions[i].addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const panel = this.nextElementSibling;
+                    if (panel.style.display === 'block') {
+                        panel.style.display = 'none';
+                    } else {
+                        panel.style.display = 'block';
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>

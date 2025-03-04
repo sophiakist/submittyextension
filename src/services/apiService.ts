@@ -16,7 +16,6 @@ interface ApiResponse {
     status: string;
     data: {
         unarchived_courses: Course[];
-        archived_courses: Course[];
         dropped_courses: Course[];
     };
     message?: string;

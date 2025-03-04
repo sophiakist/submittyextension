@@ -86,23 +86,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         vscode.window.showInformationMessage('Login Successful! Fetching courses...');
         try {
             const courses = await this.apiService.fetchCourses(token);
-
+    
             // Generate HTML for unarchived courses
             const unarchivedHtml = courses.data.unarchived_courses.length
-                ? `<ul>${courses.data.unarchived_courses.map((course) => `<li>${sanitize(course.display_name || course.title || 'Untitled Course')}</li>`).join('')}</ul>`
-                : '<p>No unarchived courses found.</p>';
-
-            // Generate HTML for archived courses
-            const archivedHtml = courses.data.archived_courses.length
-                ? `<ul>${courses.data.archived_courses.map((course) => `<li>${sanitize(course.display_name || course.title || 'Untitled Course')}</li>`).join('')}</ul>`
-                : '<p>No archived courses found.</p>';
-
+                ? courses.data.unarchived_courses.map((course) => `
+                    <button class="accordion">${sanitize(course.display_name || course.title || 'Untitled Course')}</button>
+                    <div class="panel">
+                        <p>HW 1</p>
+                        <p>HW 2</p>
+                        <p>HW 3</p>
+                    </div>
+                `).join('')
+                : '<p>No courses found.</p>';
+    
             // Send the HTML to the webview
             view.webview.postMessage({
                 command: 'displayCourses',
                 data: {
                     unarchivedHtml,
-                    archivedHtml
                 }
             });
         } catch (error: any) {
