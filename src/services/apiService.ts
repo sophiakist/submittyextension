@@ -54,7 +54,6 @@ export class ApiService {
                     Authorization: token,
                 },
             });
-            console.log('Courses API Response:', response.data);
             return response.data as ApiResponse;
         } catch (error: any) {
             console.error('Error fetching courses:', error);

@@ -1,9 +1,6 @@
-// src/sidebarProvider.ts
-
 import * as vscode from 'vscode';
-import { getHtmlContent } from './sidebarContent';
+import { getLoginHtml, getClassesHtml } from './sidebarContent';
 import { ApiService } from './services/apiService';
-import { CourseDisplay } from './display/courseDisplay';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
@@ -25,7 +22,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'src', 'webview')],
         };
 
-        webviewView.webview.html = getHtmlContent(this.context);
+        webviewView.webview.html = getLoginHtml(this.context);
 
         // Handle messages from the webview
         webviewView.webview.onDidReceiveMessage(
@@ -48,7 +45,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             case 'login':
                 await this.handleLogin(message.data, view);
                 break;
-            // Future commands can be handled here
+            case 'fetchAndDisplayCourses':
+                await this.fetchAndDisplayCourses(message.token, view);
+                break;
             default:
                 vscode.window.showWarningMessage(`Unknown command: ${message.command}`);
                 break;
@@ -71,6 +70,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         try {
             const token = await this.apiService.login(url, userId, password);
             view.webview.postMessage({ command: 'success', message: 'Login Successful!' });
+            view.webview.html = getClassesHtml(this.context);
             await this.fetchAndDisplayCourses(token, view);
         } catch (error: any) {
             view.webview.postMessage({ command: 'error', message: `Login Failed: ${error.message}` });
@@ -83,14 +83,36 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @param view The WebviewView instance.
      */
     private async fetchAndDisplayCourses(token: string, view: vscode.WebviewView) {
-
         vscode.window.showInformationMessage('Login Successful! Fetching courses...');
         try {
             const courses = await this.apiService.fetchCourses(token);
-            CourseDisplay.displayCourses(courses);
+
+            // Generate HTML for unarchived courses
+            const unarchivedHtml = courses.data.unarchived_courses.length
+                ? `<ul>${courses.data.unarchived_courses.map((course) => `<li>${sanitize(course.display_name || course.title || 'Untitled Course')}</li>`).join('')}</ul>`
+                : '<p>No unarchived courses found.</p>';
+
+            // Generate HTML for archived courses
+            const archivedHtml = courses.data.archived_courses.length
+                ? `<ul>${courses.data.archived_courses.map((course) => `<li>${sanitize(course.display_name || course.title || 'Untitled Course')}</li>`).join('')}</ul>`
+                : '<p>No archived courses found.</p>';
+
+            // Send the HTML to the webview
+            view.webview.postMessage({
+                command: 'displayCourses',
+                data: {
+                    unarchivedHtml,
+                    archivedHtml
+                }
+            });
         } catch (error: any) {
             vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
             view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
         }
     }
+}
+
+// Utility function to sanitize HTML content
+function sanitize(str: string): string {
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

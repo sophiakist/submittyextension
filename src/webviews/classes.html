@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submitty Courses</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            padding: 10px;
+            color: var(--vscode-editor-foreground);
+            background-color: var(--vscode-editor-background);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <h3>Unarchived Courses</h3>
+        <div id="unarchivedCourses"></div>
+    </section>
+    <section>
+        <h3>Archived Courses</h3>
+        <div id="archivedCourses"></div>
+    </section>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        window.addEventListener('message', (event) => {
+            const { command, data } = event.data;
+            if (command === 'displayCourses') {
+                document.getElementById('unarchivedCourses').innerHTML = data.unarchivedHtml;
+                document.getElementById('archivedCourses').innerHTML = data.archivedHtml;
+            }
+        });
+    </script>
+</body>
+</html>
