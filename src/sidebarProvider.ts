@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import { getLoginHtml, getClassesHtml } from './sidebarContent';
 import { ApiService } from './services/apiService';
+import { EventEmitter } from 'events';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
     private apiService: ApiService;
+    public static loginEventEmitter = new EventEmitter();
 
     constructor(private readonly context: vscode.ExtensionContext) {
         this.apiService = new ApiService(this.context);
@@ -34,12 +36,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         );
     }
 
-    /**
-     * Handles incoming messages from the webview.
-     * Delegates tasks based on the message command.
-     * @param message The message received from the webview.
-     * @param view The WebviewView instance.
-     */
     private async handleMessage(message: any, view: vscode.WebviewView) {
         switch (message.command) {
             case 'login':
@@ -48,17 +44,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             case 'fetchAndDisplayCourses':
                 await this.fetchAndDisplayCourses(message.token, view);
                 break;
+            case 'hw1Click':
+                SidebarProvider.loginEventEmitter.emit('hw1Click');
+                break;
             default:
                 vscode.window.showWarningMessage(`Unknown command: ${message.command}`);
                 break;
         }
     }
 
-    /**
-     * Handles the login operation.
-     * @param data The data containing userId and password.
-     * @param view The WebviewView instance.
-     */
     private async handleLogin(data: any, view: vscode.WebviewView) {
         const { url, userId, password } = data;
 
@@ -72,25 +66,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             view.webview.postMessage({ command: 'success', message: 'Login Successful!' });
             view.webview.html = getClassesHtml(this.context);
             await this.fetchAndDisplayCourses(token, view);
+
+            // Emit login success event
+            SidebarProvider.loginEventEmitter.emit('loginSuccess', token);
         } catch (error: any) {
             view.webview.postMessage({ command: 'error', message: `Login Failed: ${error.message}` });
         }
     }
 
-    /**
-     * Fetches courses using the provided token and displays them.
-     * @param token The authentication token received after login.
-     * @param view The WebviewView instance.
-     */
     private async fetchAndDisplayCourses(token: string, view: vscode.WebviewView) {
-        vscode.window.showInformationMessage('Login Successful! Fetching courses...');
         try {
             const courses = await this.apiService.fetchCourses(token);
     
-            // Generate HTML for unarchived courses
             const unarchivedHtml = courses.data.unarchived_courses.length
                 ? courses.data.unarchived_courses.map((course) => `
-                    <button class="accordion">${sanitize(course.display_name || course.title || 'Untitled Course')}</button>
+                    <button class="accordion" onclick="vscode.postMessage({ command: 'hw1Click' })">${sanitize(course.display_name || course.title || 'Untitled Course')}</button>
                     <div class="panel">
                         <p>HW 1</p>
                         <p>HW 2</p>
@@ -99,7 +89,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 `).join('')
                 : '<p>No courses found.</p>';
     
-            // Send the HTML to the webview
             view.webview.postMessage({
                 command: 'displayCourses',
                 data: {
@@ -113,7 +102,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 }
 
-// Utility function to sanitize HTML content
 function sanitize(str: string): string {
     return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

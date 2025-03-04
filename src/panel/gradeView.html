@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submitty Panel</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            padding: 10px;
+            color: var(--vscode-editor-foreground);
+            background-color: var(--vscode-editor-background);
+        }
+        .test {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <h1>HW 1</h1>
+        <div class="test pass">
+            <strong>Test 1:</strong> Passed
+        </div>
+        <div class="test fail">
+            <strong>Test 2:</strong> Failed
+        </div>
+        <div class="test pass">
+            <strong>Test 3:</strong> Passed
+        </div>
+        <div class="test fail">
+            <strong>Test 4:</strong> Failed
+        </div>
+    </div>
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        window.addEventListener('message', (event) => {
+            const message = event.data;
+            if (message.command === 'loginSuccess') {
+                document.getElementById('content').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
