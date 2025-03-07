@@ -8,7 +8,8 @@
             font-family: var(--vscode-font-family);
             padding: 10px;
             color: var(--vscode-editor-foreground);
-            background-color: var(--vscode-editor-background);
+            background-color: var (--vscode-editor-background);
+            position: relative;
         }
         .test {
             margin: 10px 0;
@@ -23,11 +24,36 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        .score {
+            font-size: 1.7em;
+            font-weight: bold;
+        }
+        .dropdown {
+            margin-top: 20px;
+            font-family: var(--vscode-font-family);
+            color: var(--vscode-editor-foreground);
+            background-color: var(--vscode-editor-background);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
     <div id="content">
-        <h1>HW 1</h1>
+        <div class="dropdown">
+            <label for="previous-grades">Previous Attempts:</label>
+            <select id="previous-grades">
+                <option value="1">Attempt 1: 20/40</option>
+                <option value="2" selected>Attempt 2: 25/40</option> <!-- Set selected attribute -->
+            </select>
+        </div>
+        <div class="header">
+            <h1>HW 1</h1>
+            <div class="score">Score: 25/40</div>
+        </div>
         <div class="test pass">
             <strong>Test 1:</strong> Passed
         </div>
