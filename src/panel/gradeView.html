@@ -8,7 +8,7 @@
             font-family: var(--vscode-font-family);
             padding: 10px;
             color: var(--vscode-editor-foreground);
-            background-color: var (--vscode-editor-background);
+            background-color: var(--vscode-editor-background);
             position: relative;
         }
         .test {
@@ -46,25 +46,15 @@
         <div class="dropdown">
             <label for="previous-grades">Previous Attempts:</label>
             <select id="previous-grades">
-                <option value="1">Attempt 1: 20/40</option>
-                <option value="2" selected>Attempt 2: 25/40</option> <!-- Set selected attribute -->
+                <!-- Options will be dynamically populated -->
             </select>
         </div>
         <div class="header">
-            <h1>HW 1</h1>
-            <div class="score">Score: 25/40</div>
+            <h1 id="hw-title"></h1>
+            <div class="score" id="hw-score"></div>
         </div>
-        <div class="test pass">
-            <strong>Test 1:</strong> Passed
-        </div>
-        <div class="test fail">
-            <strong>Test 2:</strong> Failed
-        </div>
-        <div class="test pass">
-            <strong>Test 3:</strong> Passed
-        </div>
-        <div class="test fail">
-            <strong>Test 4:</strong> Failed
+        <div id="test-results">
+            <!-- Test results will be dynamically populated -->
         </div>
     </div>
     <script>
@@ -72,10 +62,32 @@
 
         window.addEventListener('message', (event) => {
             const message = event.data;
-            if (message.command === 'loginSuccess') {
-                document.getElementById('content').style.display = 'block';
+            if (message.command === 'displayGrade') {
+                const { hw, gradeDetails, previousAttempts } = message.data;
+                document.getElementById('hw-title').innerText = hw;
+                updateGradeDetails(gradeDetails);
+
+                const previousGradesDropdown = document.getElementById('previous-grades');
+                previousGradesDropdown.innerHTML = previousAttempts.map((attempt, index) => `
+                    <option value="${index}" ${index === previousAttempts.length - 1 ? 'selected' : ''}>Attempt ${index + 1}: ${attempt.score}</option>
+                `).join('');
+
+                previousGradesDropdown.addEventListener('change', (event) => {
+                    const selectedIndex = event.target.value;
+                    updateGradeDetails(previousAttempts[selectedIndex]);
+                });
             }
         });
+
+        function updateGradeDetails(gradeDetails) {
+            document.getElementById('hw-score').innerText = `Score: ${gradeDetails.score}`;
+            const testResults = gradeDetails.tests.map(test => `
+                <div class="test ${test.passed ? 'pass' : 'fail'}">
+                    <strong>${test.name}:</strong> ${test.passed ? 'Passed' : 'Failed'}
+                </div>
+            `).join('');
+            document.getElementById('test-results').innerHTML = testResults;
+        }
     </script>
 </body>
 </html>

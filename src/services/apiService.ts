@@ -59,4 +59,26 @@ export class ApiService {
             throw new Error(error.response?.data?.message || 'Failed to fetch courses.');
         }
     }
+
+    async fetchGradeDetails(hw: string): Promise<any> {
+        // Hardcoded grade details
+        return {
+            score: '25/40',
+            tests: [
+                { name: 'Test 1', passed: true },
+                { name: 'Test 2', passed: false },
+                { name: 'Test 3', passed: true },
+                { name: 'Test 4', passed: false },
+            ]
+        };
+    }
+
+
+    async fetchPreviousAttempts(hw: string): Promise<any[]> {
+        // Hardcoded previous attempts
+        return [
+            { score: '15/40', tests: [{ name: 'Test 1', passed: false }, { name: 'Test 2', passed: false }, { name: 'Test 3', passed: true }, { name: 'Test 4', passed: false }] },
+            { score: '25/40', tests: [{ name: 'Test 1', passed: true }, { name: 'Test 2', passed: false }, { name: 'Test 3', passed: true }, { name: 'Test 4', passed: false }] }
+        ];
+    }
 }

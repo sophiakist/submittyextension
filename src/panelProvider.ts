@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { getPanelHtml, getLoginPromptHtml } from './panelContent';
 import { SidebarProvider } from './sidebarProvider';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class PanelProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
@@ -9,6 +10,11 @@ export class PanelProvider implements vscode.WebviewViewProvider {
         // Listen for login success events
         SidebarProvider.loginEventEmitter.on('loginSuccess', (token: string) => {
             this.showPanelContent(token);
+        });
+
+        // Register command to show grade panel
+        vscode.commands.registerCommand('extension.showGradePanel', (data) => {
+            this.showGradePanel(data);
         });
     }
 
@@ -24,8 +30,8 @@ export class PanelProvider implements vscode.WebviewViewProvider {
             localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'src', 'webview')],
         };
 
-        // Initially show login prompt
-        webviewView.webview.html = getLoginPromptHtml();
+        // Initially show blank screen
+        webviewView.webview.html = this.getHtmlForWebview('blank.html');
 
         // Handle messages from the webview
         webviewView.webview.onDidReceiveMessage(
@@ -47,7 +53,23 @@ export class PanelProvider implements vscode.WebviewViewProvider {
 
     private showPanelContent(token: string) {
         if (this._view) {
-            this._view.webview.html = getPanelHtml(this.context);
+            this._view.webview.html = this.getHtmlForWebview('panel.html');
         }
+    }
+
+    private showGradePanel(data: { hw: string, gradeDetails: any }) {
+        if (this._view) {
+            this._view.webview.html = this.getHtmlForWebview('gradeView.html');
+            this._view.webview.postMessage({
+                command: 'displayGrade',
+                data: data
+            });
+        }
+    }
+
+    private getHtmlForWebview(filename: string): string {
+        const filePath = vscode.Uri.file(path.join(this.context.extensionPath, 'src', 'panel', filename));
+        const fileContent = fs.readFileSync(filePath.fsPath, 'utf8');
+        return fileContent;
     }
 }

@@ -13,12 +13,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('submitty-panel', panelProvider)
     );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand('submitty.grade', () => {
-            vscode.window.showInformationMessage('Grade command executed!');
-        })
-    );
 }
 
 export function deactivate() {}

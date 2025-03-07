@@ -44,8 +44,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             case 'fetchAndDisplayCourses':
                 await this.fetchAndDisplayCourses(message.token, view);
                 break;
-            case 'hw1Click':
-                SidebarProvider.loginEventEmitter.emit('hw1Click');
+            case 'grade':
+                await this.handleGrade(message.hw, view);
                 break;
             default:
                 vscode.window.showWarningMessage(`Unknown command: ${message.command}`);
@@ -80,11 +80,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     
             const unarchivedHtml = courses.data.unarchived_courses.length
                 ? courses.data.unarchived_courses.map((course) => `
-                    <button class="accordion" onclick="vscode.postMessage({ command: 'hw1Click' })">${sanitize(course.display_name || course.title || 'Untitled Course')}</button>
+                    <button class="accordion">${sanitize(course.display_name || course.title || 'Untitled Course')}</button>
                     <div class="panel">
-                        <p>HW 1</p>
-                        <p>HW 2</p>
-                        <p>HW 3</p>
+                        <p>HW 1 <button class="grade-button" onclick="vscode.postMessage({ command: 'grade', hw: 'HW 1' })">Grade</button></p>
+                        <p>HW 2 <button class="grade-button" onclick="">Grade</button></p>
+                        <p>HW 3 <button class="grade-button" onclick="">Grade</button></p>
                     </div>
                 `).join('')
                 : '<p>No courses found.</p>';
@@ -98,6 +98,31 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         } catch (error: any) {
             vscode.window.showErrorMessage(`Failed to fetch courses: ${error.message}`);
             view.webview.postMessage({ command: 'error', message: `Failed to fetch courses: ${error.message}` });
+        }
+    }
+    private async handleGrade(hw: string, view: vscode.WebviewView) {
+        try {
+            const gradeDetails = await this.apiService.fetchGradeDetails(hw);
+            const previousAttempts = await this.apiService.fetchPreviousAttempts(hw); // Fetch previous attempts
+    
+            view.webview.postMessage({
+                command: 'displayGrade',
+                data: {
+                    hw,
+                    gradeDetails,
+                    previousAttempts, // Include previous attempts
+                }
+            });
+    
+            // Send message to PanelProvider
+            vscode.commands.executeCommand('extension.showGradePanel', {
+                hw,
+                gradeDetails,
+                previousAttempts, // Include previous attempts
+            });
+        } catch (error: any) {
+            vscode.window.showErrorMessage(`Failed to fetch grade details: ${error.message}`);
+            view.webview.postMessage({ command: 'error', message: `Failed to fetch grade details: ${error.message}` });
         }
     }
 }
